@@ -26,6 +26,7 @@ recent research, with fully reproducible notebooks and evaluation pipelines.
 | 3 | [Preference Alignment](implementations/preference_alignment/) | LLM alignment with human preferences using DPO framework |
 | 4 | [Multimedia RAG + VLM](implementations/multimedia_rag/) | Cross-modal retrieval-augmented generation with ImageBind (audio, video, text) |
 | 5 | [Agentic ChartQA Evaluation](implementations/agentic_vqa_eval/) | Multi-agent evaluation harness for chart-based VQA using CrewAI and ChartQAPro |
+| 6 | [Mechanistic Interpretability](implementations/mechanistic_interpretability/) | Sparse Autoencoders for LLM feature discovery, and logit-lens + activation patching for VLM modality fusion |
 
 ## Getting Started
 
@@ -49,9 +50,14 @@ recent research, with fully reproducible notebooks and evaluation pipelines.
    | ------- | ----------- | ----------------- |
    | XAI Refresher | `xai-refresher` | `uv sync --group xai-refresher` |
    | Bias & Fairness Analysis | None | `uv sync` |
+   | Mechanistic Interpretability | `mechanistic-interp` | `uv sync --group mechanistic-interp` |
    | Preference Alignment (DPO) | `preference-alignment` | `uv sync --group preference-alignment` |
    | Multimedia RAG | `multimedia-rag` | `uv sync --group multimedia-rag` |
    | Agentic ChartQA Eval | `agentic-xai-eval` | `uv sync --group agentic-xai-eval` |
+
+
+   > **Conflict note:** The `mechanistic-interp` and `xai-refresher` groups cannot be installed
+   > together — they have conflicting `datasets` package requirements. Install only one at a time.
 
    > **CUDA note (ref4 — Preference Alignment):** The group uses `torch==2.6.0` from PyPI
    > (which includes CUDA support on Linux). If you specifically need the CUDA 12.4 build, run:
@@ -66,6 +72,18 @@ recent research, with fully reproducible notebooks and evaluation pipelines.
    ```bash
    uv run jupyter lab
    ```
+
+5. Run integration tests to validate that your API keys are set up correctly:
+
+   ```bash
+   uv run --env-file .env pytest -sv tests/test_integration.py
+   ```
+
+   > **Note:** If your `.env` file is incomplete or needs to be updated, you can re-run onboarding manually from inside your Coder workspace (from the repo root):
+   >
+   > ```bash
+   > onboard --bootcamp-name "llm-interpretability-bootcamp" --output-dir "." --test-script "./aieng-llm-interp/tests/test_integration.py" --env-example "./.env.example" --test-marker "integration_test" --force
+   > ```
 
 ## License
 

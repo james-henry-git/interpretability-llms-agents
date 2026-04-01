@@ -59,11 +59,25 @@ class Qwen2_5OMNI(BaseModel):  # noqa: N801
         config = AutoConfig.from_pretrained(model_name)
         config.attn_implementation = "eager"  # FORCE disable FlashAttention2
 
+        # Reserve headroom on each GPU for activation tensors during video encoding.
+        # Without this, device_map="auto" fills GPU 0 first, leaving no room for
+        # intermediate activations and causing OOM during inference.
+        activation_reserve_gib = 6
+        max_memory = (
+            {
+                i: f"{(torch.cuda.get_device_properties(i).total_memory // (1024**3)) - activation_reserve_gib}GiB"
+                for i in range(torch.cuda.device_count())
+            }
+            if torch.cuda.is_available()
+            else None
+        )
+
         self.model = Qwen2_5OmniForConditionalGeneration.from_pretrained(
             model_name,
             config=config,
             torch_dtype=torch.bfloat16,
             device_map="auto",
+            max_memory=max_memory,
         )
         self.model.disable_talker()
 

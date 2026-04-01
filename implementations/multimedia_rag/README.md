@@ -51,35 +51,64 @@ This is required for embedding video/audio segments.
 mkdir -p data
 ```
 
-### VQA JSON Files (Place in `data/`)
+### VQA JSON Files
 
-Download:
+These are included in the GCP download below for convenience — same files as the SONIC-O1 HuggingFace dataset. They define the multiple-choice video QA tasks.
 
-* [https://huggingface.co/datasets/vector-institute/sonic-o1/blob/main/vqa/task2_mcq/02_Job_Interviews.json](https://huggingface.co/datasets/vector-institute/sonic-o1/blob/main/vqa/task2_mcq/02_Job_Interviews.json)
-* [https://huggingface.co/datasets/vector-institute/sonic-o1/blob/main/vqa/task2_mcq/04_Customer_Service_Interactions.json](https://huggingface.co/datasets/vector-institute/sonic-o1/blob/main/vqa/task2_mcq/04_Customer_Service_Interactions.json)
-* [https://huggingface.co/datasets/vector-institute/sonic-o1/blob/main/vqa/task2_mcq/01_Patient-Doctor_Consultations.json](https://huggingface.co/datasets/vector-institute/sonic-o1/blob/main/vqa/task2_mcq/01_Patient-Doctor_Consultations.json)
+If you prefer to download them individually:
 
-These define the multiple-choice video QA tasks.
+- [02_Job_Interviews.json](https://huggingface.co/datasets/vector-institute/sonic-o1/blob/main/vqa/task2_mcq/02_Job_Interviews.json)
+- [04_Customer_Service_Interactions.json](https://huggingface.co/datasets/vector-institute/sonic-o1/blob/main/vqa/task2_mcq/04_Customer_Service_Interactions.json)
+- [01_Patient-Doctor_Consultations.json](https://huggingface.co/datasets/vector-institute/sonic-o1/blob/main/vqa/task2_mcq/01_Patient-Doctor_Consultations.json)
 
 ### Video / Audio / Caption Files
 
-Download from:
+The media dataset is hosted in a GCP bucket.
 
-```
-<GOOGLE_DRIVE_LINK_PLACEHOLDER>
-```
-
-Extract contents into:
+#### 1) Download Dataset
 
 ```bash
-data/
+cd implementations/multimedia_rag
+gcloud storage cp gs://interp-bootcamp-data/multimedia_rag/data.zip .
+unzip data.zip
 ```
 
-The expected structure includes:
+Files are placed correctly after extraction — no manual reorganisation needed.
 
-* video
-* audio
-* caption
+#### 2) Cleanup temporary files
+
+```bash
+rm -f __MACOSX data.zip data/.DS_Store
+```
+
+The zip contains everything needed to run the notebooks:
+
+```
+data/
+├── Customer_Service_Interactions/
+│   ├── audio/                   # base audio files
+│   ├── video/                   # base video files
+│   ├── caption/                 # base caption files
+│   ├── process-audio/           # pre-generated, can be regenerated
+│   ├── process-video/           # pre-generated, can be regenerated
+│   ├── segment-audio_30s/       # pre-generated, can be regenerated
+│   ├── segment-video_30s/       # pre-generated, can be regenerated
+│   ├── segment-caption_30s/     # pre-generated, can be regenerated
+│   ├── audio_embeddings.pt      # pre-generated, can be regenerated
+│   ├── video_embeddings.pt      # pre-generated, can be regenerated
+│   └── caption_embeddings.pt    # pre-generated, can be regenerated
+├── Job_Interviews/              # same structure as above
+├── Patient-Doctor_Consultations/  # same structure as above
+├── global_embeddings/           # pre-generated, can be regenerated
+├── Customer_Service_Interactions.json
+├── Customer_Service_Interactions_filtered.json  # pre-generated, can be regenerated
+├── Job_Interviews.json
+├── Job_Interviews_filtered.json               # pre-generated, can be regenerated
+├── Patient-Doctor_Consultations.json
+└── Patient-Doctor_Consultations_filtered.json # pre-generated, can be regenerated
+```
+
+Pre-generated files (`process-*`, `segment-*`, `*.pt` embeddings, `global_embeddings/`, `*_filtered.json`) are included to save time, but can all be reproduced by running the notebooks from scratch.
 
 ---
 
@@ -89,44 +118,30 @@ Two independent environments are required due to package conflicts between the R
 
 ---
 
+> **On the Coder platform**, `ffmpeg` is already available. You can verify with:
+>
+> ```bash
+> ffmpeg -version
+> ```
+
+<details>
+<summary>Not on Coder? Install ffmpeg manually</summary>
+
 ```bash
-# If ffmpeg is not installed, install it for video/audio processing
 sudo apt update
 sudo apt install ffmpeg
 ```
 
-### A. Ref5 – Video RAG (Retrieval)
+</details>
 
-Used for:
-
-* Segment embedding
-* Cross-modal similarity search
-* Top-k retrieval
-
-From the **root of the repository**:
+Both the retrieval (RAG) and QA (inference) pipelines use the same dependency group. From the **root of the repository**:
 
 ```bash
 uv sync --group multimedia-rag
 source .venv/bin/activate
 ```
 
----
-
-### B. Ref5 – Video QA (Inference)
-
-Used for:
-
-* Qwen Omni multimodal reasoning
-* Answer generation over retrieved segments
-
-From the **root of the repository**:
-
-```bash
-uv sync --group multimedia-rag
-source .venv/bin/activate
-```
-
-> **Note:** The two groups are mutually exclusive — switch between them by re-running `uv sync --group <name>` as needed.
+This installs everything needed for both the Video RAG (ImageBind embedding + retrieval) and Video QA (Qwen Omni inference) notebooks.
 
 ---
 
@@ -135,11 +150,6 @@ source .venv/bin/activate
 ```bash
 jupyter lab
 ```
-
-Choose:
-
-* **Ref5 (Video RAG)** → retrieval pipeline
-* **Ref5 (Video QA)** → multimodal QA evaluation
 
 ---
 

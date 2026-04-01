@@ -203,8 +203,9 @@ class AVRAG:
         # Replace filenames (currently texts) with the .srt basenames for alignment
         cap_embed["filename"] = [os.path.splitext(os.path.basename(p))[0] for p in srt_paths]
 
-        # Optional cache next to srt_dir
-        torch.save(cap_embed, os.path.join(os.path.dirname(srt_dir), "caption_embeddings.pt"))
+        # Save cache next to srt_dir
+        save_path = os.path.join(os.path.dirname(srt_dir), "caption_embeddings.pt")
+        torch.save({"filename": cap_embed["filename"], "embeddings": cap_embed["embeddings"].cpu()}, save_path)
         return cap_embed
 
     def topk(self, queries, vocabs, k=1, log=True):
